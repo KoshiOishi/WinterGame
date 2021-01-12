@@ -70,7 +70,8 @@ void GameOver::AddScore()
 		std::vector<int> scoreList;
 
 		ifs.open("Resources/score.bin", std::ios::binary);
-		ifs.read();
+		//ifs.read();
+		ifs.close();
 	}
 
 }
