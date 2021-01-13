@@ -89,12 +89,7 @@ void GamePlay::Update()
 {
 
 #pragma region 更新処理
-	DebugText::Print("GamePlay", 0, 0);
 
-	if (Input::Trigger(DIK_SPACE))
-	{
-		SceneManager::SetScene("GameOver");
-	}
 
 	//壁が通り過ぎたらプレイヤーと壁の形状をリセット、壁のスピードを上げる
 	if (objWalls[0].GetPosition().z < -100)
