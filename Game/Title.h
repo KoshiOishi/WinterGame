@@ -25,11 +25,14 @@ private:
 	bool isStart = false;
 	int cursolnum = 0;
 
+	int effectTimer = 0;
+
 public:
 	Title();
 	~Title();
 	void Initialize() override;
 	void Update() override;
 	void Draw() override;
+	void UpdateEffect();
 };
 

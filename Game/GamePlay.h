@@ -17,30 +17,38 @@ class GamePlay :
 
 	enum ModelNum
 	{
-		Box,
-		Sphere,
-		Square,
+		Model_Box,
+		Model_Sphere,
+		Model_Square,
+		Model_Cube
 	};
 
 private:
-	Sprite sprite1;
+	//スコア文字
+	vector<Sprite> sprScore;
+	Sprite sprScoreText;
 
 	//オブジェクト
 	vector<Object3D> objPlayers;
 	vector<Object3D> objWalls;
 	Object3D objSky;
 
+	//当たり判定
+	vector<Sphere> colPlayers;
+	vector<Sphere> colWalls;
+
 	//モデル
 	Model modelBox;
 	Model modelSphere;
 	Model modelSquare;
 	Model modelSky;
+	Model modelCube;
 
 	//ライト
 	Light light;
 
 	//モデルの形状
-	ModelNum modelnum = Square;
+	ModelNum modelnum = Model_Square;
 
 	//プレイヤーの形状フラグ(5x5のbool型)
 	GlobalFormat::Format5x5 playerFormat;
@@ -90,5 +98,6 @@ public:
 	void CollisionPlayer2Wall();
 	void AfterCollision();
 	void RotateObject();
+	void UpdateSprScore();
 };
 

@@ -21,7 +21,6 @@ void GameOver::Initialize()
 {
 	AddScore();
 	WriteScore();
-	Sprite::LoadTexture(7,"Resources/number.png");
 	sprBG.Initialize(8, "Resources/gameover_BG.png");
 	sprDiff.Initialize(9, "Resources/gameover_diff.png");
 	sprDiff.SetDrawRectangle(0, 71 * (GlobalFormat::GetLevel() - 1), 282, 71);

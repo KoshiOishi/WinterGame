@@ -53,6 +53,8 @@ void Title::Initialize()
 
 	isStart = false;
 	cursolnum = 0;
+
+	effectTimer = 0;
 }
 
 void Title::Update()
@@ -131,6 +133,7 @@ void Title::Update()
 	light.Update();
 	objCursol.Update();
 	objTitleText.Update();
+	UpdateEffect();
 }
 
 void Title::Draw()
@@ -140,6 +143,9 @@ void Title::Draw()
 
 	//îwåiÉXÉvÉâÉCÉgï`âÊÇ±Ç±Ç©ÇÁ
 	sprTitleBG.Draw();
+
+	sprTitleEffect1.Draw();
+	sprTitleEffect2.Draw();
 
 	//îwåiï`âÊÇ±Ç±Ç‹Ç≈
 	DX12Util::ClearDepthBuffer();
@@ -164,4 +170,60 @@ void Title::Draw()
 
 	//ï`âÊèIóπ
 	DX12Util::EndDraw();
+}
+
+void Title::UpdateEffect()
+{
+	//ê‘ê¸
+	if (effectTimer < 360)
+	{
+		sprTitleEffect1.SetDrawRectangle(0,0, effectTimer * 3.5555f, 720);
+		sprTitleEffect1.SetPosition(0, 0);
+	}
+	else if (effectTimer < 500)
+	{
+		sprTitleEffect1.SetDrawRectangle(0, 0, 1280, 720);
+		sprTitleEffect1.SetPosition(0, 0);
+	}
+	else if (effectTimer < 860)
+	{
+		sprTitleEffect1.SetDrawRectangle((effectTimer - 500) * 3.5555f, 0, 1280 - ((effectTimer - 500) * 3.5555f), 720);
+		sprTitleEffect1.SetPosition((effectTimer - 500) * 3.5555f, 0);
+	}
+	else
+	{
+		sprTitleEffect1.SetDrawRectangle(0, 0, 0, 0);
+	}
+
+
+	//óŒê¸
+	if (effectTimer < 240)
+	{
+		sprTitleEffect2.SetDrawRectangle(0, 0, 0, 0);
+		sprTitleEffect2.SetPosition(0, 0);
+	}
+	else if (effectTimer < 360)
+	{
+		sprTitleEffect2.SetDrawRectangle(0, 0, (effectTimer - 240) * 10.6666f, 720);
+		sprTitleEffect2.SetPosition(0, 0);
+	}
+	else if (effectTimer < 500)
+	{
+		sprTitleEffect2.SetDrawRectangle(0, 0, 1280, 720);
+		sprTitleEffect2.SetPosition(0, 0);
+	}
+	else if (effectTimer < 620)
+	{
+		sprTitleEffect2.SetDrawRectangle((effectTimer - 500) * 10.6666f, 0, 1280 - ((effectTimer - 500) * 10.6666f), 720);
+		sprTitleEffect2.SetPosition((effectTimer - 500) * 10.6666f, 0);
+	}
+	else
+	{
+		sprTitleEffect2.SetDrawRectangle(0, 0, 0, 0);
+	}
+
+
+	effectTimer += 3;
+	if (effectTimer > 1000)
+		effectTimer = 0;
 }

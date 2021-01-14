@@ -6,6 +6,7 @@
 #include "SceneManager.h"
 #include "DebugText.h"
 #include "GlobalFormat.h"
+#include "Collision.h"
 
 using namespace DirectX;
 
@@ -21,6 +22,7 @@ GamePlay::~GamePlay()
 void GamePlay::Initialize()
 {
 	Object3D::SetEye(25, 35, -100);
+	Sprite::LoadTexture(7, "Resources/number.png");
 
 	//ライト初期化
 	light.Initialize();
@@ -38,15 +40,19 @@ void GamePlay::Initialize()
 	modelSquare.CreateSquare(10,10,2);
 	modelSquare.Initialize();
 
-	//モデルの種類を指定
-	int r = rand() % 3;
+	modelCube.CreateFromOBJ("Resources/cube/cube.obj", 5);
+	modelCube.Initialize();
 
+	//モデルの種類を指定
+	int r = rand() % 4;
 	if (r == 0)
-		modelnum = Box;
+		modelnum = Model_Box;
 	else if (r == 1)
-		modelnum = Sphere;
+		modelnum = Model_Sphere;
 	else if (r == 2)
-		modelnum = Square;
+		modelnum = Model_Square;
+	else if (r == 3)
+		modelnum = Model_Cube;
 
 	//レベルを初期化
 	level = GlobalFormat::GetLevel();
@@ -83,6 +89,11 @@ void GamePlay::Initialize()
 	objSky.SetScale(1.5f,1.5f,1.5f);
 
 	score = 0;
+
+	sprScoreText.Initialize(10, "Resources/game_score.png");
+	sprScoreText.SetPosition(0,50);
+
+	UpdateSprScore();
 }
 
 void GamePlay::Update()
@@ -100,6 +111,7 @@ void GamePlay::Update()
 		if (wallSpeed < -3.0f) wallSpeed = -3.0f;
 
 		score++;
+		UpdateSprScore();
 	}
 	else
 	{
@@ -107,6 +119,7 @@ void GamePlay::Update()
 		{
 			//壁を移動させる
 			objWalls[i].AddPosition(0, 0, wallSpeed);
+			colWalls[i].center = XMVectorSet(objWalls[i].GetPosition().x, objWalls[i].GetPosition().y, objWalls[i].GetPosition().z, 0);
 		}
 
 		//衝突判定
@@ -192,6 +205,10 @@ void GamePlay::Draw()
 
 	//前景スプライト描画ここから
 
+	sprScoreText.Draw();
+	for (int i = 0; i < sprScore.size(); i++)
+		sprScore[i].Draw();
+
 	DebugText::DrawAll();
 
 	//前景スプライト描画ここまで
@@ -203,6 +220,7 @@ void GamePlay::Draw()
 void GamePlay::InitPlayer(int level)
 {
 	objPlayers.clear();
+	colPlayers.clear();
 	GlobalFormat::Format5x5 format = GlobalFormat::GetPlayerShape(level);
 	playerFormat = format;
 
@@ -213,31 +231,41 @@ void GamePlay::InitPlayer(int level)
 			if (format.shape[i][j] == true)
 			{
 				Object3D obj;
-				if (modelnum == Box)
+				if (modelnum == Model_Box)
 					obj.SetModel(modelBox);
-				else if (modelnum == Sphere)
+				else if (modelnum == Model_Sphere)
 					obj.SetModel(modelSphere);
-				else if (modelnum == Square)
+				else if (modelnum == Model_Square)
 					obj.SetModel(modelSquare);
+				else if (modelnum == Model_Cube)
+					obj.SetModel(modelCube);
 
 				obj.Initialize();
-				if (modelnum == Square)
+				if (modelnum == Model_Square)
 					obj.SetIsLight(false);
 				obj.SetPosition(j * 10 - 25, i * -10 + 25, -40);
 				objPlayers.push_back(obj);
+
+				//当たり判定
+				Sphere sphere;
+				sphere.center = XMVectorSet(j * 10 - 25, i * -10 + 25, -40, 0);
+				sphere.radius = MODEL_LENGTH / 2;
+				colPlayers.push_back(sphere);
 			}
 			else
 			{
 				Object3D obj;
-				if (modelnum == Box)
+				if (modelnum == Model_Box)
 					obj.SetModel(modelBox);
-				else if (modelnum == Sphere)
+				else if (modelnum == Model_Sphere)
 					obj.SetModel(modelSphere);
-				else if (modelnum == Square)
+				else if (modelnum == Model_Square)
 					obj.SetModel(modelSquare);
+				else if (modelnum == Model_Cube)
+					obj.SetModel(modelCube);
 
 				obj.Initialize();
-				if (modelnum == Square)
+				if (modelnum == Model_Square)
 					obj.SetIsLight(false);
 				obj.SetPosition(j * 10 - 25, i * -10 + 25, -40);
 				obj.SetColorAs0To255(128,128,128,128);
@@ -251,6 +279,7 @@ void GamePlay::InitPlayer(int level)
 void GamePlay::InitWall(int level)
 {
 	objWalls.clear();
+	colWalls.clear();
 	GlobalFormat::Format5x5 format = GlobalFormat::GetWallShape(level, playerFormat);
 
 	for (int i = 0; i < 5; i++)
@@ -260,19 +289,27 @@ void GamePlay::InitWall(int level)
 			if (format.shape[i][j] == true)
 			{
 				Object3D obj;
-				if (modelnum == Box)
+				if (modelnum == Model_Box)
 					obj.SetModel(modelBox);
-				else if (modelnum == Sphere)
+				else if (modelnum == Model_Sphere)
 					obj.SetModel(modelSphere);
-				else if (modelnum == Square)
+				else if (modelnum == Model_Square)
 					obj.SetModel(modelSquare);
+				else if (modelnum == Model_Cube)
+					obj.SetModel(modelCube);
 
 				obj.Initialize();
-				if (modelnum == Square)
+				if (modelnum == Model_Square)
 					obj.SetIsLight(false);
 				obj.SetPosition(j * 10 - 25, i * -10 + 25, 150);
 				obj.SetColorAs0To255(255, 64, 64, 255);
 				objWalls.push_back(obj);
+
+				//当たり判定
+				Sphere sphere;
+				sphere.center = XMVectorSet(j * 10 - 25, i * -10 + 25, 150, 0);
+				sphere.radius = MODEL_LENGTH / 2 - 1;	//隣接時に判定を取らないようにすこし小さめ
+				colWalls.push_back(sphere);
 			}
 		}
 	}
@@ -408,6 +445,7 @@ void GamePlay::UpdateCameraAngle()
 void GamePlay::SetPlayerObjects(GlobalFormat::Format5x5 format)
 {
 	objPlayers.clear();
+	colPlayers.clear();
 	for (int i = 0; i < 5; i++)
 	{
 		for (int j = 0; j < 5; j++)
@@ -415,31 +453,41 @@ void GamePlay::SetPlayerObjects(GlobalFormat::Format5x5 format)
 			if (format.shape[i][j] == true)
 			{
 				Object3D obj;
-				if (modelnum == Box)
+				if (modelnum == Model_Box)
 					obj.SetModel(modelBox);
-				else if (modelnum == Sphere)
+				else if (modelnum == Model_Sphere)
 					obj.SetModel(modelSphere);
-				else if (modelnum == Square)
+				else if (modelnum == Model_Square)
 					obj.SetModel(modelSquare);
+				else if (modelnum == Model_Cube)
+					obj.SetModel(modelCube);
 
 				obj.Initialize();
-				if (modelnum == Square)
+				if (modelnum == Model_Square)
 					obj.SetIsLight(false);
 				obj.SetPosition(j * 10 - 25, i * -10 + 25, -40);
 				objPlayers.push_back(obj);
+
+				//当たり判定
+				Sphere sphere;
+				sphere.center = XMVectorSet(j * 10 - 25, i * -10 + 25, -40, 0);
+				sphere.radius = MODEL_LENGTH / 2;
+				colPlayers.push_back(sphere);
 			}
 			else
 			{
 				Object3D obj;
-				if (modelnum == Box)
+				if (modelnum == Model_Box)
 					obj.SetModel(modelBox);
-				else if (modelnum == Sphere)
+				else if (modelnum == Model_Sphere)
 					obj.SetModel(modelSphere);
-				else if (modelnum == Square)
+				else if (modelnum == Model_Square)
 					obj.SetModel(modelSquare);
+				else if (modelnum == Model_Cube)
+					obj.SetModel(modelCube);
 
 				obj.Initialize();
-				if (modelnum == Square)
+				if (modelnum == Model_Square)
 					obj.SetIsLight(false);
 				obj.SetPosition(j * 10 - 25, i * -10 + 25, -40);
 				obj.SetColorAs0To255(128, 128, 128, 128);
@@ -457,16 +505,27 @@ void GamePlay::CollisionPlayer2Wall()
 {
 	if (isCollision) return;
 
+	for (int i = 0; i < colPlayers.size(); i++)
+	{
+		for (int j = 0; j < colWalls.size(); j++)
+			if (Collision::CheckSphere2Sphere(colPlayers[i], colWalls[j]))
+				isCollision = true;
+	}
+
 	for (int i = 0; i < 5; i++)
 	{
 		for (int j = 0; j < 5; j++)
 		{
+			//旧処理　当たり判定を計算で取るのが必須なのを忘れてましたチーーーン
+
+
 			//プレイヤーブロックと壁の場所フラグが両方真のとき衝突
 			if (playerFormat.shape[i][j] == true && wallFormat.shape[i][j] == true)
 			{
-				isCollision = true;
 				collisionList.push_back(i * 5 + j);
 			}
+
+
 		}
 	}
 }
@@ -487,7 +546,7 @@ void GamePlay::AfterCollision()
 
 void GamePlay::RotateObject()
 {
-	if (modelnum != Sphere) return;
+	if (modelnum != Model_Sphere) return;
 
 	objectRotate += 1.0f;
 
@@ -503,4 +562,50 @@ void GamePlay::RotateObject()
 	}
 
 
+}
+
+void GamePlay::UpdateSprScore()
+{
+	//最初の処理
+	if (score == 0)
+	{
+		sprScore.clear();
+		Sprite spr;
+		spr.SetTexNumber(7);//Number.png
+		spr.GenerateSprite();
+		spr.SetDrawRectangle(0, 0, 60, 100);
+		spr.SetPosition(300,53);
+		sprScore.push_back(spr);
+		return;
+	}
+
+	//まず桁数が合っているかチェック
+	int n = score;
+	int keta = 0;
+	while (n != 0)
+	{
+		n /= 10;
+		keta++;
+	}
+
+	while (keta > sprScore.size())
+	{
+		Sprite spr;
+		spr.SetTexNumber(7);//Number.png
+		spr.GenerateSprite();
+		sprScore.push_back(spr);
+	}
+
+	int n2 = score;
+
+	//数字に合わせてレクタングルをセット
+	for (int i = 0; i < sprScore.size(); i++)
+	{
+		int drawnum = n2 % 10;
+
+		sprScore[(sprScore.size() - 1) - i].SetDrawRectangle(60 * drawnum, 0, 60, 100);
+		sprScore[(sprScore.size() - 1) - i].SetPosition(300 + ((sprScore.size() - 1) - i) * 50, 53);
+
+		n2 /= 10;
+	}
 }
